@@ -32,3 +32,5 @@ coverage/
 .DS_Store
 Thumbs.db
 Desktop.ini
+MANUAL_TEST_CHECKLIST.md
+SnapLine/PORTING_ANALYSIS.md
