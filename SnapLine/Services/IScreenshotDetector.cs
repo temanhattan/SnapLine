@@ -10,8 +10,9 @@ public interface IScreenshotDetector
 
 public delegate Task ScreenshotDetectedHandler(object sender, ScreenshotDetectedEventArgs args);
 
-public sealed class ScreenshotDetectedEventArgs(string filePath, DateTimeOffset capturedAt)
+public sealed class ScreenshotDetectedEventArgs(string filePath, DateTimeOffset capturedAt, string source)
 {
     public string FilePath { get; } = filePath;
     public DateTimeOffset CapturedAt { get; } = capturedAt;
+    public string Source { get; } = source;
 }

@@ -5,8 +5,8 @@ namespace SnapLine.Services;
 /// <summary>Registers one process-wide shortcut against the app window and forwards WM_HOTKEY.</summary>
 public sealed class GlobalHotkeyService : IDisposable
 {
-    private const uint HotkeyModifiers = 0x0002 | 0x0001; // MOD_CONTROL | MOD_ALT
-    private const uint VirtualKeyS = 0x53;
+    private const uint HotkeyModifiers = 0x0002 | 0x0001 | 0x4000; // MOD_CONTROL | MOD_ALT | MOD_NOREPEAT
+    private const uint VirtualKeyT = 0x54;
     private const uint HotkeyMessage = 0x0312;
     private const nuint HotkeyId = 0x534E;
 
@@ -27,7 +27,7 @@ public sealed class GlobalHotkeyService : IDisposable
         _subclassInstalled = SetWindowSubclass(_windowHandle, _subclassProcedure, HotkeyId, 0);
         if (!_subclassInstalled) return false;
 
-        _registered = RegisterHotKey(_windowHandle, (int)HotkeyId, HotkeyModifiers, VirtualKeyS);
+        _registered = RegisterHotKey(_windowHandle, (int)HotkeyId, HotkeyModifiers, VirtualKeyT);
         if (!_registered)
         {
             RemoveWindowSubclass(_windowHandle, _subclassProcedure, HotkeyId);

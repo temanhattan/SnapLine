@@ -1,24 +1,31 @@
 # SnapLine
 
-SnapLine is a native Windows desktop utility built with C#, .NET, WinUI 3, and the Windows App SDK.
+SnapLine is a Windows screenshot clothesline, ported from the macOS utility Tendedero. It is a background WinUI 3 app for Windows 10/11, built with C# and .NET 10.
 
-## Project structure
+## What it does
 
-- `Services/IScreenshotDetector` — identifies newly captured screenshot files.
-- `Services/ClipboardScreenshotDetector` — listens for bitmap clipboard updates from Snipping Tool (Win + Shift + S).
-- `Services/CompositeScreenshotDetector` — allows multiple capture providers to feed the same pipeline.
-- `Services/IScreenshotStorage` — owns the stored-file lifecycle.
-- `Models/ScreenshotItem` — identity, temporary original path, thumbnail path, capture time, and pending/active/viewed/shared/saved/deleted state.
-- `Services/IClotheslineService` — coordinates detection, storage, and item state.
-- `Services/IUserActionService` — handles actions initiated from the UI.
-- `MainWindow` — WinUI presentation layer.
+- Shows screenshots as small cards near the top of the current monitor. A global `Ctrl+Alt+T` shortcut toggles the line; the tray icon provides Show/Hide, Clear, Open Screenshots Folder, Settings, and Quit.
+- A click copies the image to the clipboard and leaves it on the line. A double-click opens it in the default image app. Hold for 450 ms to open the built-in markup editor. Drag files to another app or Explorer; right-click for Copy, Open, Markup, Show in Explorer, and applicable save/discard actions.
+- Watches the Windows Screenshots folder, Desktop screenshot-named images, and Game Bar captures. Clipboard bitmap notifications support Snipping Tool and other capture tools that publish an image.
+- Stores clipboard captures in `%APPDATA%\SnapLine\Screenshots` and remembers line items across restarts. Captures already saved elsewhere remain at their original paths. Removing an inbox capture sends it to the Recycle Bin; removing an existing file only takes it off the line.
+- Offers English and Spanish strings, configurable startup and sounds, and an original SnapLine icon.
 
-Temporary screenshots are held under `%LOCALAPPDATA%\SnapLine\Temporary` in a per-run directory. Startup removes abandoned sessions but leaves files owned by another active process intact; saving copies the original to the user-selected destination and removes its temporary files. Thumbnails are reduced to at most 480 × 320 pixels before encoding. Clipboard captures with identical image data within two seconds are treated as duplicate notifications, and SnapLine's own Copy command is tagged so it is not re-imported as a new capture.
+## Windows behavior and limits
 
-The floating clothesline is borderless, topmost, and uses a Desktop Acrylic backdrop so the desktop shows through. It spans the display width and sits near its top edge. Press `Ctrl+Alt+S` to reveal it. An empty preview is shown at startup; screenshot detection listens for clipboard bitmap updates from Win + Shift + S. Clicking an item opens the original image with its Windows default handler. Right-clicking offers Open, Edit, Copy Image, Copy File, Save, Save As, Open With, and Delete. Save and Save As both ask the user to choose a destination. The destination is written and verified before the temporary screenshot is removed; cancelling or failing to save leaves it on the clothesline. Copy Image publishes bitmap clipboard data; Copy File publishes a normal Windows file-drop item. Both remove the screenshot from the clothesline while keeping its temporary source available for the clipboard paste until the app session ends. Dragging publishes the original as a native Windows storage item; successful drops consume it, while cancelled drags leave it in place.
+Windows does not expose a supported global API for changing Snipping Tool's save or floating-preview preferences. SnapLine's optional first-run capture handling is app-managed: it watches clipboard images and standard screenshot folders, and can keep clipboard captures in its own Screenshots folder. It does not change Windows capture settings, suppress Windows notifications, or guarantee detection from every third-party capture app. The notification-area Settings panel can enable/disable capture handling and sounds, and configure launch at sign-in.
 
-The project is configured as an unpackaged, self-contained Windows App SDK app. The executable includes the Windows App SDK and .NET runtime, so it does not require a separate Windows App Runtime installation. There is not yet a system-tray affordance.
+The line approximates macOS Spaces/fullscreen behavior by checking Windows fullscreen and notification states. Windows desktop composition, capture flows, Trash semantics, and system sounds differ from macOS. See [SnapLine/PORTING_ANALYSIS.md](SnapLine/PORTING_ANALYSIS.md) for the source audit, parity matrix, research links, and remaining limitations.
 
-## Build prerequisites
+## Build
 
-Install the .NET 10 SDK and Windows 10/11 SDK. Build with `dotnet build SnapLine.sln`. To launch the self-contained x64 build, run `SnapLine/bin/Debug/net10.0-windows10.0.19041.0/win-x64/SnapLine.exe`.
+Install the .NET 10 SDK and Windows 10/11 SDK, then run:
+
+```powershell
+dotnet build SnapLine.sln
+```
+
+The generated icon can be recreated with `powershell -ExecutionPolicy Bypass -File scripts/New-SnapLineIcon.ps1`.
+
+## Attribution and license
+
+SnapLine is an independent Windows port. The original Tendedero source is © 2026 Alejandro Buján and licensed under MIT; see [LICENSES/Tendedero-MIT.txt](LICENSES/Tendedero-MIT.txt). Tendedero's name and icon are excluded from that license and are not used by SnapLine. SnapLine's own project license remains in the root `LICENSE` file.

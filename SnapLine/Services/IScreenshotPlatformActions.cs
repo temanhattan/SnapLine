@@ -6,6 +6,7 @@ public interface IScreenshotShell
     void Open(string filePath);
     void Edit(string filePath);
     void OpenWith(string filePath, nint ownerWindow);
+    void Reveal(string filePath);
 }
 
 public interface IScreenshotClipboard

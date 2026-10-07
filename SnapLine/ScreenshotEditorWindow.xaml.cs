@@ -37,12 +37,26 @@ public sealed partial class ScreenshotEditorWindow : Window
         _item = item;
         _storage = storage;
         InitializeComponent();
+        Title = Localization.Get("EditorTitle");
+        CropButton.Content = Localization.Get("Crop");
+        DrawButton.Content = Localization.Get("Draw");
+        HighlightButton.Content = Localization.Get("Highlight");
+        TextButton.Content = Localization.Get("Text");
+        BlurButton.Content = Localization.Get("Blur");
+        RedactButton.Content = Localization.Get("Redact");
+        ApplyCropButton.Content = Localization.Get("ApplyCrop");
+        UndoButton.Content = Localization.Get("Undo");
+        CancelButton.Content = Localization.Get("Cancel");
+        SaveButton.Content = Localization.Get("SaveChanges");
+        ModeLabel.Text = $"{Localization.Get("Tool")}: {Localization.Get("Draw")}";
+        ((UIElement)Content).KeyDown += OnEditorKeyDown;
         SourceImage.Source = item.ThumbnailImage;
         ((FrameworkElement)Content).Loaded += OnLoaded;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs args)
     {
+        ((UIElement)Content).Focus(FocusState.Programmatic);
         try
         {
             var file = await StorageFile.GetFileFromPathAsync(_item.OriginalImagePath);
@@ -66,8 +80,31 @@ public sealed partial class ScreenshotEditorWindow : Window
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync("Couldn't open this screenshot", exception.Message);
+            await ShowErrorAsync(Localization.Get("CouldNotOpen"), exception.Message);
             Close();
+        }
+    }
+
+    private async void OnEditorKeyDown(object sender, KeyRoutedEventArgs args)
+    {
+        var ctrl = Microsoft.UI.Input.InputKeyboardSource
+            .GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control)
+            .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+        if (args.Key == Windows.System.VirtualKey.Escape)
+        {
+            Close();
+            args.Handled = true;
+        }
+        else if (ctrl && args.Key == Windows.System.VirtualKey.Z)
+        {
+            OnUndo(this, new RoutedEventArgs());
+            args.Handled = true;
+        }
+        else if ((ctrl && args.Key == Windows.System.VirtualKey.S) ||
+                 args.Key == Windows.System.VirtualKey.Enter)
+        {
+            await SaveAsync();
+            args.Handled = true;
         }
     }
 
@@ -81,7 +118,7 @@ public sealed partial class ScreenshotEditorWindow : Window
     private void SetMode(EditMode mode)
     {
         _mode = mode;
-        ModeLabel.Text = $"Tool: {mode}";
+        ModeLabel.Text = $"{Localization.Get("Tool")}: {Localization.Get(mode.ToString())}";
         _cropSelection = null;
         RemoveSelectionPreview();
     }
@@ -187,13 +224,13 @@ public sealed partial class ScreenshotEditorWindow : Window
 
     private async Task AddTextAsync(Point point)
     {
-        var input = new TextBox { PlaceholderText = "Type a short label", AcceptsReturn = true, MinWidth = 300 };
+        var input = new TextBox { PlaceholderText = Localization.Get("TypeLabel"), AcceptsReturn = true, MinWidth = 300 };
         var dialog = new ContentDialog
         {
-            Title = "Add text",
+            Title = Localization.Get("AddText"),
             Content = input,
-            PrimaryButtonText = "Add text",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = Localization.Get("AddLabel"),
+            CloseButtonText = Localization.Get("Cancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = Content.XamlRoot
         };
@@ -221,7 +258,7 @@ public sealed partial class ScreenshotEditorWindow : Window
     {
         if (_cropSelection is not { } selection)
         {
-            await ShowErrorAsync("Choose a crop area", "Select Crop, then drag over the area to keep.");
+            await ShowErrorAsync(Localization.Get("ChooseCrop"), Localization.Get("SelectCrop"));
             return;
         }
 
@@ -251,7 +288,7 @@ public sealed partial class ScreenshotEditorWindow : Window
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync("Couldn't apply the crop", exception.Message);
+            await ShowErrorAsync(Localization.Get("CropFailed"), exception.Message);
         }
     }
 
@@ -273,7 +310,9 @@ public sealed partial class ScreenshotEditorWindow : Window
             AddRegionOutline(region, "Blur");
     }
 
-    private async void OnSave(object sender, RoutedEventArgs args)
+    private async void OnSave(object sender, RoutedEventArgs args) => await SaveAsync();
+
+    private async Task SaveAsync()
     {
         try
         {
@@ -283,7 +322,7 @@ public sealed partial class ScreenshotEditorWindow : Window
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync("Couldn't save the edited screenshot", exception.Message);
+            await ShowErrorAsync(Localization.Get("CouldNotSave"), exception.Message);
         }
     }
 
@@ -491,7 +530,7 @@ public sealed partial class ScreenshotEditorWindow : Window
         {
             Title = title,
             Content = message,
-            CloseButtonText = "OK",
+            CloseButtonText = Localization.Get("Ok"),
             XamlRoot = Content.XamlRoot
         };
         await dialog.ShowAsync();

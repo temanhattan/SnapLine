@@ -17,5 +17,9 @@ public interface IUserActionService
     Task<bool> SaveAsAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
     Task OpenWithAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
     Task DeleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
+    Task DiscardAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
+    Task SaveToDesktopAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
+    Task RevealAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
+    bool IsInInbox(ScreenshotItem item);
     Task CompleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
 }

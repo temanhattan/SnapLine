@@ -72,6 +72,9 @@ public sealed class UserActionService(
         EnsureAvailable(item, cancellationToken);
         await clipboard.CopyImageAsync(item.OriginalImagePath, cancellationToken);
         await CompleteClipboardCopyAsync(item, cancellationToken);
+        item.IsCopied = true;
+        await Task.Delay(TimeSpan.FromSeconds(1.2), cancellationToken);
+        item.IsCopied = false;
     }
 
     public async Task CopyFileAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
@@ -83,11 +86,10 @@ public sealed class UserActionService(
 
     private async Task CompleteClipboardCopyAsync(ScreenshotItem item, CancellationToken cancellationToken)
     {
-        // Keep the temporary original in this session because the clipboard may still
-        // reference it for delayed rendering or a later file paste. It is removed at
-        // normal session cleanup, while the screenshot disappears from the clothesline now.
-        item.CurrentState = ScreenshotState.Shared;
-        await clothesline.RemoveFromLineAsync(item, cancellationToken);
+        // Copy is a transient action in Tendedero: the photo stays on the line
+        // and can be copied again, edited, opened, or dragged afterward.
+        cancellationToken.ThrowIfCancellationRequested();
+        item.CurrentState = ScreenshotState.Active;
     }
 
     public Task<bool> SaveAsync(ScreenshotItem item, CancellationToken cancellationToken = default) =>
@@ -119,34 +121,48 @@ public sealed class UserActionService(
     public async Task DeleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
     {
         EnsureAvailable(item, cancellationToken);
-        if (item.CurrentState == ScreenshotState.PendingDeletion) return;
+        await storage.DeleteAsync(item, cancellationToken);
+        await clothesline.RemoveFromLineAsync(item, cancellationToken);
+    }
 
-        var pending = new PendingDelete(item);
-        lock (_pendingLock)
-        {
-            item.CurrentState = ScreenshotState.PendingDeletion;
-            _pendingDeletes[item.Id] = pending;
-            _pendingOrder.Add(item.Id);
-        }
+    public async Task DiscardAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        EnsureAvailable(item, cancellationToken);
+        if (IsInInbox(item))
+            await storage.DeleteAsync(item, cancellationToken);
+        else if (AppPreferences.SoundsEnabled)
+            WindowsSoundEffects.Remove();
+        await clothesline.RemoveFromLineAsync(item, cancellationToken);
+    }
 
-        try
-        {
-            await clothesline.RemoveFromLineAsync(item, cancellationToken);
-        }
-        catch
-        {
-            lock (_pendingLock)
-            {
-                _pendingDeletes.Remove(item.Id);
-                _pendingOrder.Remove(item.Id);
-                item.CurrentState = ScreenshotState.Active;
-            }
-            pending.Cancellation.Dispose();
-            throw;
-        }
+    public bool IsInInbox(ScreenshotItem item)
+    {
+        var inbox = Path.GetFullPath(storage.TemporaryRootPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        return Path.GetFullPath(item.OriginalImagePath).StartsWith(inbox, StringComparison.OrdinalIgnoreCase);
+    }
 
-        UndoStateChanged?.Invoke(this, EventArgs.Empty);
-        _ = FinalizeDeleteAsync(pending);
+    public async Task SaveToDesktopAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        EnsureAvailable(item, cancellationToken);
+        if (!IsInInbox(item)) return;
+        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        Directory.CreateDirectory(desktop);
+        var name = Path.GetFileName(item.OriginalImagePath);
+        var baseName = Path.GetFileNameWithoutExtension(name);
+        var extension = Path.GetExtension(name);
+        var target = Path.Combine(desktop, name);
+        for (var suffix = 2; File.Exists(target); suffix++)
+            target = Path.Combine(desktop, $"{baseName} {suffix}{extension}");
+        cancellationToken.ThrowIfCancellationRequested();
+        File.Move(item.OriginalImagePath, target);
+        await clothesline.RemoveFromLineAsync(item, cancellationToken);
+    }
+
+    public Task RevealAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        EnsureAvailable(item, cancellationToken);
+        shell.Reveal(item.OriginalImagePath);
+        return Task.CompletedTask;
     }
 
     private async Task FinalizeDeleteAsync(PendingDelete pending)
@@ -189,8 +205,15 @@ public sealed class UserActionService(
         public volatile bool UndoRequested;
     }
 
-    public Task CompleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default) =>
-        clothesline.ConsumeAsync(item, cancellationToken);
+    public async Task CompleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        // A Recycle Bin drop is reported as Delete by OLE. For a Move, the
+        // destination may already have removed the source; if it only copied
+        // it, finish the move by sending the original through the Recycle Bin.
+        if (File.Exists(item.OriginalImagePath))
+            await storage.DeleteAsync(item, cancellationToken);
+        await clothesline.RemoveFromLineAsync(item, cancellationToken);
+    }
 
     private static void EnsureAvailable(ScreenshotItem item, CancellationToken cancellationToken)
     {

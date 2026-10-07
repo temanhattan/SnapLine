@@ -14,7 +14,8 @@ public sealed class AppServices
         ScreenshotStorage = new TemporaryScreenshotStorage();
         ScreenshotDetector = new CompositeScreenshotDetector(
         [
-            new ClipboardScreenshotDetector(ScreenshotStorage)
+            new ClipboardScreenshotDetector(ScreenshotStorage, () => AppPreferences.CaptureClipboard),
+            new SavedScreenshotDetector()
         ]);
         Clothesline = new ClotheslineService(
             ScreenshotDetector,

@@ -7,6 +7,12 @@ public sealed class WindowsScreenshotShell : IScreenshotShell
 {
     public void Open(string filePath) => Launch(filePath, "open");
     public void Edit(string filePath) => Launch(filePath, "edit");
+    public void Reveal(string filePath) => Process.Start(new ProcessStartInfo
+    {
+        FileName = "explorer.exe",
+        Arguments = $"/select,\"{Path.GetFullPath(filePath)}\"",
+        UseShellExecute = true
+    });
 
     public void OpenWith(string filePath, nint ownerWindow)
     {

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="EmptyHint" xml:space="preserve"><value>Take a screenshot and it will hang here</value></data>
+  <data name="GestureTip" xml:space="preserve"><value>Click to copy · hold to mark up · double-click to open · drag to share</value></data>
+  <data name="Discard" xml:space="preserve"><value>Discard</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Markup" xml:space="preserve"><value>Markup</value></data>
+  <data name="ShowInExplorer" xml:space="preserve"><value>Show in Explorer</value></data>
+  <data name="SaveToDesktop" xml:space="preserve"><value>Save to Desktop</value></data>
+  <data name="TakeDown" xml:space="preserve"><value>Take down</value></data>
+  <data name="MoveToRecycleBin" xml:space="preserve"><value>Move to Recycle Bin</value></data>
+  <data name="Copied" xml:space="preserve"><value>✓ Copied</value></data>
+  <data name="ShortcutUnavailable" xml:space="preserve"><value>Ctrl + Alt + T is unavailable. Close other SnapLine copies and restart.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>SnapLine settings</value></data>
+  <data name="Startup" xml:space="preserve"><value>Start SnapLine when I sign in</value></data>
+  <data name="HandleScreenshots" xml:space="preserve"><value>Handle screenshots from the clipboard and Screenshots folders</value></data>
+  <data name="Sounds" xml:space="preserve"><value>Sounds</value></data>
+  <data name="CaptureClipboard" xml:space="preserve"><value>Capture screenshots copied to the clipboard</value></data>
+  <data name="OpenLogFolder" xml:space="preserve"><value>Open log folder</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SetupTitle" xml:space="preserve"><value>Let SnapLine handle your screenshots?</value></data>
+  <data name="SetupText" xml:space="preserve"><value>Windows controls Snipping Tool's save location and floating preview. SnapLine can collect clipboard captures in its Screenshots folder and watch Windows' screenshot folders. Your existing captures stay where they are.</value></data>
+  <data name="TurnOn" xml:space="preserve"><value>Turn on</value></data>
+  <data name="NotNow" xml:space="preserve"><value>Not now</value></data>
+  <data name="ActionErrorTitle" xml:space="preserve"><value>Couldn't complete that action</value></data>
+  <data name="EditorTitle" xml:space="preserve"><value>Edit screenshot</value></data>
+  <data name="CouldNotOpen" xml:space="preserve"><value>Couldn't open this screenshot</value></data>
+  <data name="CouldNotSave" xml:space="preserve"><value>Couldn't save the edited screenshot</value></data>
+  <data name="Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="ShowLine" xml:space="preserve"><value>Show line</value></data>
+  <data name="HideLine" xml:space="preserve"><value>Hide line</value></data>
+  <data name="TakeEverythingDown" xml:space="preserve"><value>Take everything down</value></data>
+  <data name="OpenScreenshotsFolder" xml:space="preserve"><value>Open screenshots folder</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Quit" xml:space="preserve"><value>Quit SnapLine</value></data>
+  <data name="Tool" xml:space="preserve"><value>Tool</value></data>
+  <data name="Crop" xml:space="preserve"><value>Crop</value></data>
+  <data name="Draw" xml:space="preserve"><value>Draw</value></data>
+  <data name="Highlight" xml:space="preserve"><value>Highlight</value></data>
+  <data name="Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Blur" xml:space="preserve"><value>Blur</value></data>
+  <data name="Redact" xml:space="preserve"><value>Redact</value></data>
+  <data name="ApplyCrop" xml:space="preserve"><value>Apply Crop</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="AddText" xml:space="preserve"><value>Add text</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>Type a short label</value></data>
+  <data name="ChooseCrop" xml:space="preserve"><value>Choose a crop area</value></data>
+  <data name="SelectCrop" xml:space="preserve"><value>Select Crop, then drag over the area to keep.</value></data>
+  <data name="CropFailed" xml:space="preserve"><value>Couldn't apply the crop</value></data>
+  <data name="AddLabel" xml:space="preserve"><value>Add label</value></data>
+  <data name="Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="TrayTip" xml:space="preserve"><value>SnapLine — screenshots on a clothesline</value></data>
+</root>

@@ -4,55 +4,85 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="SnapLine">
     <Grid x:Name="ClotheslineRoot" Background="Transparent" Opacity="1">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="LineTranslation" Y="-222" />
+        </Grid.RenderTransform>
         <TextBlock x:Name="EmptyHint"
-                   Text="Waiting for a screenshot · press Win + Shift + S"
-                   FontSize="14"
+                   Text=""
+                   FontSize="12"
                    Foreground="#E8E0D2"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Margin="0,68,0,0"
                    Visibility="Collapsed" />
-        <Path Data="M 0,0 Q 1,26 2,0" Margin="24,19,24,0" Height="28" VerticalAlignment="Top" Stretch="Fill" Stroke="#A99B83" StrokeThickness="2" IsHitTestVisible="False" />
-        <ScrollViewer Margin="12,22,12,0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-        <ItemsControl ItemsSource="{x:Bind Clothesline.Items}">
-            <ItemsControl.ItemContainerTransitions>
-                <TransitionCollection>
-                    <EntranceThemeTransition FromVerticalOffset="-14" />
-                    <AddDeleteThemeTransition />
-                    <RepositionThemeTransition />
-                </TransitionCollection>
-            </ItemsControl.ItemContainerTransitions>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid Width="144" Height="176"
-                          RenderTransformOrigin="0.5,0.12"
-                          CanDrag="True"
-                          DragStarting="OnScreenshotDragStarting"
-                          DropCompleted="OnScreenshotDropCompleted"
-                          Tapped="OnScreenshotTapped"
-                          ContextRequested="OnScreenshotContextRequested"
-                          ToolTipService.ToolTip="Click to open · drag to share">
-                        <Grid.RenderTransform>
-                            <CompositeTransform x:Name="ItemTransform" />
-                        </Grid.RenderTransform>
-                        <Line X1="72" Y1="0" X2="72" Y2="20" Stroke="#A99B83" StrokeThickness="2" />
-                        <Border Margin="7,18,7,12" Padding="4" CornerRadius="9" Background="#F4F0E8" BorderBrush="#D4C7B2" BorderThickness="1">
-                            <Grid>
-                                <Image Source="{Binding ThumbnailImage}" Stretch="UniformToFill" />
-                                <Border Height="22" VerticalAlignment="Bottom" Background="#66000000">
-                                    <TextBlock Text="{Binding CreatedAtLabel}" Foreground="White" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Center" />
+        <Path Data="M 0,0 Q 1,30 2,0" Margin="0,10,0,0" Height="30" VerticalAlignment="Top" Stretch="Fill" Stroke="#8E9099" StrokeThickness="1.2" IsHitTestVisible="False" />
+        <ScrollViewer Margin="0,10,0,0" HorizontalAlignment="Center" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{x:Bind Clothesline.Items}">
+                <ItemsControl.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition FromVerticalOffset="-46" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ItemsControl.ItemContainerTransitions>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="24" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Width="150" Height="240"
+                              RenderTransformOrigin="0.5,0"
+                              CanDrag="True"
+                              DragStarting="OnScreenshotDragStarting"
+                              DropCompleted="OnScreenshotDropCompleted"
+                              PointerPressed="OnScreenshotPointerPressed"
+                              PointerEntered="OnCardPointerEntered"
+                              PointerExited="OnCardPointerExited"
+                              PointerReleased="OnScreenshotPointerReleased"
+                              PointerMoved="OnScreenshotPointerMoved"
+                              PointerCanceled="OnScreenshotPointerCanceled"
+                              PointerCaptureLost="OnScreenshotPointerCanceled"
+                              ContextRequested="OnScreenshotContextRequested"
+                              ToolTipService.ToolTip="{Binding GestureTip}">
+                            <Grid.RenderTransform>
+                                <CompositeTransform Rotation="{Binding TiltDegrees}" />
+                            </Grid.RenderTransform>
+                            <Grid Width="9" Height="26" HorizontalAlignment="Center" VerticalAlignment="Top" IsHitTestVisible="False">
+                                <Border Width="9" Height="26" CornerRadius="3.5" BorderThickness="0.6" BorderBrush="#99FFFFFF">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#FFB3B5BB" Offset="0" />
+                                            <GradientStop Color="#FFF0F1F5" Offset="0.35" />
+                                            <GradientStop Color="#FFD2D3D9" Offset="0.65" />
+                                            <GradientStop Color="#FF9E9FA6" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                 </Border>
+                                <Border Width="5" Height="1.4" CornerRadius="1" Background="#99000000" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,8,0,0" />
                             </Grid>
-                        </Border>
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                            <Border Margin="0,14,0,0" Padding="4" CornerRadius="16" Background="#B8F7F7F7" BorderBrush="#A8FFFFFF" BorderThickness="1" VerticalAlignment="Top">
+                                <Grid>
+                                    <Image Source="{Binding ThumbnailImage}" Stretch="Uniform" MaxWidth="136" MaxHeight="104" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Button Content="×" Width="20" Height="20" Padding="0" MinWidth="0" MinHeight="0"
+                                            HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-3,-3,0,0"
+                                            Background="#B8E5E5E8" Foreground="#FF24242A" BorderThickness="0"
+                                            Visibility="{Binding DiscardVisibility}"
+                                            PointerPressed="OnDeleteButtonPointerPressed" PointerReleased="OnDeleteButtonPointerReleased"
+                                            Click="OnScreenshotDeleteClicked" ToolTipService.ToolTip="{Binding DiscardLabel}" />
+                                <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-16"
+                                        Padding="10,5" CornerRadius="14" Background="#E8F7F7F7"
+                                        BorderBrush="#66FFFFFF" BorderThickness="1"
+                                        Visibility="{Binding CopiedVisibility}">
+                                    <TextBlock Text="{Binding CopiedLabel}" FontSize="11" FontWeight="SemiBold" Foreground="#FF292930" />
+                                </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
         <Border x:Name="UndoToast" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Bottom"
                 Margin="0,0,0,12" Padding="14,8" CornerRadius="18"

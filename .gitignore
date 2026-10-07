@@ -1,12 +1,34 @@
-## Build output
-bin/
-obj/
+# Build output
+[Bb]in/
+[Oo]bj/
+artifacts/
+publish/
+TestResults/
+coverage/
 
-## Visual Studio
+# Visual Studio and JetBrains IDE files
 .vs/
+.idea/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
 
-## OS files
+# NuGet packages and local tooling
+*.nupkg
+*.snupkg
+.sonarlint/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.snk
+
+# OS files
 .DS_Store
 Thumbs.db
+Desktop.ini

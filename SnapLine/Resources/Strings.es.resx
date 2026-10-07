@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="EmptyHint" xml:space="preserve"><value>Toma una captura y quedará colgada aquí</value></data>
+  <data name="GestureTip" xml:space="preserve"><value>Clic para copiar · mantén para marcar · doble clic para abrir · arrastra para compartir</value></data>
+  <data name="Discard" xml:space="preserve"><value>Descartar</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Open" xml:space="preserve"><value>Abrir</value></data>
+  <data name="Markup" xml:space="preserve"><value>Marcación</value></data>
+  <data name="ShowInExplorer" xml:space="preserve"><value>Mostrar en el Explorador</value></data>
+  <data name="SaveToDesktop" xml:space="preserve"><value>Guardar en el Escritorio</value></data>
+  <data name="TakeDown" xml:space="preserve"><value>Descolgar</value></data>
+  <data name="MoveToRecycleBin" xml:space="preserve"><value>Mover a la Papelera de reciclaje</value></data>
+  <data name="Copied" xml:space="preserve"><value>✓ Copiado</value></data>
+  <data name="ShortcutUnavailable" xml:space="preserve"><value>Ctrl + Alt + T no está disponible. Cierra otras copias de SnapLine y reinicia.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Configuración de SnapLine</value></data>
+  <data name="Startup" xml:space="preserve"><value>Iniciar SnapLine al iniciar sesión</value></data>
+  <data name="HandleScreenshots" xml:space="preserve"><value>Gestionar capturas del portapapeles y las carpetas de capturas</value></data>
+  <data name="Sounds" xml:space="preserve"><value>Sonidos</value></data>
+  <data name="CaptureClipboard" xml:space="preserve"><value>Capturar capturas copiadas al portapapeles</value></data>
+  <data name="OpenLogFolder" xml:space="preserve"><value>Abrir carpeta de registros</value></data>
+  <data name="Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="SetupTitle" xml:space="preserve"><value>¿Quieres que SnapLine gestione tus capturas?</value></data>
+  <data name="SetupText" xml:space="preserve"><value>Windows controla la ubicación donde guarda Recortes y su vista previa flotante. SnapLine puede guardar las capturas del portapapeles en su carpeta y vigilar las carpetas de capturas de Windows. Tus capturas existentes permanecerán donde están.</value></data>
+  <data name="TurnOn" xml:space="preserve"><value>Activar</value></data>
+  <data name="NotNow" xml:space="preserve"><value>Ahora no</value></data>
+  <data name="ActionErrorTitle" xml:space="preserve"><value>No se pudo completar la acción</value></data>
+  <data name="EditorTitle" xml:space="preserve"><value>Editar captura</value></data>
+  <data name="CouldNotOpen" xml:space="preserve"><value>No se pudo abrir esta captura</value></data>
+  <data name="CouldNotSave" xml:space="preserve"><value>No se pudieron guardar los cambios</value></data>
+  <data name="Ok" xml:space="preserve"><value>Aceptar</value></data>
+  <data name="ShowLine" xml:space="preserve"><value>Mostrar tendedero</value></data>
+  <data name="HideLine" xml:space="preserve"><value>Ocultar tendedero</value></data>
+  <data name="TakeEverythingDown" xml:space="preserve"><value>Descolgar todo</value></data>
+  <data name="OpenScreenshotsFolder" xml:space="preserve"><value>Abrir carpeta de capturas</value></data>
+  <data name="Settings" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Quit" xml:space="preserve"><value>Salir de SnapLine</value></data>
+  <data name="Tool" xml:space="preserve"><value>Herramienta</value></data>
+  <data name="Crop" xml:space="preserve"><value>Recortar</value></data>
+  <data name="Draw" xml:space="preserve"><value>Dibujar</value></data>
+  <data name="Highlight" xml:space="preserve"><value>Resaltar</value></data>
+  <data name="Text" xml:space="preserve"><value>Texto</value></data>
+  <data name="Blur" xml:space="preserve"><value>Desenfocar</value></data>
+  <data name="Redact" xml:space="preserve"><value>Ocultar</value></data>
+  <data name="ApplyCrop" xml:space="preserve"><value>Aplicar recorte</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Guardar cambios</value></data>
+  <data name="AddText" xml:space="preserve"><value>Añadir texto</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>Escribe una etiqueta breve</value></data>
+  <data name="ChooseCrop" xml:space="preserve"><value>Elige un área para recortar</value></data>
+  <data name="SelectCrop" xml:space="preserve"><value>Selecciona Recortar y arrastra sobre el área que quieras conservar.</value></data>
+  <data name="CropFailed" xml:space="preserve"><value>No se pudo aplicar el recorte</value></data>
+  <data name="AddLabel" xml:space="preserve"><value>Añadir etiqueta</value></data>
+  <data name="Undo" xml:space="preserve"><value>Deshacer</value></data>
+  <data name="TrayTip" xml:space="preserve"><value>SnapLine — capturas en un tendedero</value></data>
+</root>

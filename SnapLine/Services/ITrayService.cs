@@ -4,6 +4,11 @@ namespace SnapLine.Services;
 public interface ITrayService : IDisposable
 {
     event EventHandler? ShowRequested;
+    event EventHandler? HideRequested;
+    event EventHandler? SettingsRequested;
+    event EventHandler? ClearRequested;
+    event EventHandler? OpenScreenshotsFolderRequested;
+    event EventHandler? OpenLogFolderRequested;
     event EventHandler? ExitRequested;
     void Start();
 }
