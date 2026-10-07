@@ -25,12 +25,43 @@ public sealed class ClotheslineService(
         await detector.StopAsync(cancellationToken);
     }
 
+    public async Task ConsumeAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        if (!Items.Contains(item)) return;
+        await storage.DeleteAsync(item, cancellationToken);
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!dispatcherQueue.TryEnqueue(() =>
+            {
+                Items.Remove(item);
+                ItemsChanged?.Invoke(this, EventArgs.Empty);
+                completion.SetResult();
+            }))
+            throw new InvalidOperationException("The UI dispatcher is no longer available.");
+
+        await completion.Task;
+    }
+
+    public async Task RemoveFromLineAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!dispatcherQueue.TryEnqueue(() =>
+            {
+                Items.Remove(item);
+                ItemsChanged?.Invoke(this, EventArgs.Empty);
+                completion.SetResult();
+            }))
+            throw new InvalidOperationException("The UI dispatcher is no longer available.");
+
+        await completion.Task.WaitAsync(cancellationToken);
+    }
+
     private async Task OnScreenshotDetectedAsync(object sender, ScreenshotDetectedEventArgs args)
     {
         var item = await storage.StoreAsync(args.FilePath);
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         if (!dispatcherQueue.TryEnqueue(() =>
             {
+                item.CurrentState = ScreenshotState.Active;
                 Items.Add(item);
                 ItemsChanged?.Invoke(this, EventArgs.Empty);
                 completion.SetResult();

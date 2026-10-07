@@ -10,4 +10,6 @@ public interface IClotheslineService
     event EventHandler? ItemsChanged;
     Task StartAsync(CancellationToken cancellationToken = default);
     Task StopAsync(CancellationToken cancellationToken = default);
+    Task ConsumeAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
+    Task RemoveFromLineAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
 }

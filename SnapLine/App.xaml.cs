@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using SnapLine.Services;
+using WinRT.Interop;
 
 namespace SnapLine;
 
@@ -10,10 +11,11 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        Services = AppServices.Create();
+        Services = AppServices.Create(() => MainWindowHandle);
     }
 
     public AppServices Services { get; }
+    public nint MainWindowHandle => _window is null ? nint.Zero : WindowNative.GetWindowHandle(_window);
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {

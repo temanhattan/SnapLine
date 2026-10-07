@@ -4,9 +4,12 @@ namespace SnapLine.Models;
 
 public enum ScreenshotState
 {
+    Pending,
     Active,
+    Viewed,
+    Shared,
     Saved,
-    Completed
+    Deleted
 }
 
 public sealed class ScreenshotItem(Guid id, string filePath, string thumbnailPath, DateTimeOffset createdAt)
@@ -18,5 +21,5 @@ public sealed class ScreenshotItem(Guid id, string filePath, string thumbnailPat
     public BitmapImage ThumbnailImage => new(new Uri(ThumbnailPath));
     public DateTimeOffset CreatedAt { get; } = createdAt;
     public string CreatedAtLabel => CreatedAt.ToLocalTime().ToString("h:mm tt");
-    public ScreenshotState CurrentState { get; internal set; } = ScreenshotState.Active;
+    public ScreenshotState CurrentState { get; internal set; } = ScreenshotState.Pending;
 }

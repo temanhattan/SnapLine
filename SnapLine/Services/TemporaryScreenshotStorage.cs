@@ -85,7 +85,9 @@ public sealed class TemporaryScreenshotStorage : IScreenshotStorage
         var destinationDirectory = Path.GetDirectoryName(fullDestinationPath)
             ?? throw new ArgumentException("A destination directory is required.", nameof(destinationPath));
         Directory.CreateDirectory(destinationDirectory);
-        await CopyFileAsync(item.FilePath, fullDestinationPath, cancellationToken);
+        if (string.Equals(Path.GetFullPath(item.FilePath), fullDestinationPath, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("The save destination must be outside temporary storage.");
+        await CopyFileAsync(item.FilePath, fullDestinationPath, cancellationToken, overwrite: true);
         await DeleteAsync(item, cancellationToken);
         item.CurrentState = ScreenshotState.Saved;
         return fullDestinationPath;
@@ -100,7 +102,7 @@ public sealed class TemporaryScreenshotStorage : IScreenshotStorage
             cancellationToken.ThrowIfCancellationRequested();
             var itemDirectory = Path.GetDirectoryName(item.FilePath)!;
             if (Directory.Exists(itemDirectory)) Directory.Delete(itemDirectory, recursive: true);
-            item.CurrentState = ScreenshotState.Completed;
+            item.CurrentState = ScreenshotState.Deleted;
         }
         finally
         {
@@ -116,11 +118,11 @@ public sealed class TemporaryScreenshotStorage : IScreenshotStorage
             throw new InvalidOperationException("The screenshot does not belong to this temporary storage session.");
     }
 
-    private static async Task CopyFileAsync(string source, string destination, CancellationToken cancellationToken)
+    private static async Task CopyFileAsync(string source, string destination, CancellationToken cancellationToken, bool overwrite = false)
     {
         await using var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read,
             128 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        await using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+        await using var output = new FileStream(destination, overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write, FileShare.None,
             128 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
         await input.CopyToAsync(output, 128 * 1024, cancellationToken);
     }
