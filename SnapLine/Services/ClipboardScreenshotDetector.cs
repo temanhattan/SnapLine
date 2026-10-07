@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
 
@@ -13,6 +14,8 @@ public sealed class ClipboardScreenshotDetector(IScreenshotStorage storage) : IS
     private readonly SemaphoreSlim _captureGate = new(1, 1);
     private bool _started;
     private uint _lastClipboardSequence;
+    private string? _lastImageHash;
+    private DateTimeOffset _lastImageAt;
 
     public event ScreenshotDetectedHandler? ScreenshotDetected;
 
@@ -45,6 +48,11 @@ public sealed class ClipboardScreenshotDetector(IScreenshotStorage storage) : IS
 
             var content = Clipboard.GetContent();
             if (!content.Contains(StandardDataFormats.Bitmap)) return;
+            if (content.Contains("SnapLine.ClipboardCopyMarker"))
+            {
+                _lastClipboardSequence = sequence;
+                return;
+            }
 
             var bitmapReference = await content.GetBitmapAsync();
             using var bitmapStream = await bitmapReference.OpenReadAsync();
@@ -53,7 +61,18 @@ public sealed class ClipboardScreenshotDetector(IScreenshotStorage storage) : IS
             stagingPath = Path.Combine(stagingDirectory, $"{Guid.NewGuid():N}.png");
             await WriteStreamAsync(bitmapStream, stagingPath);
 
+            var imageHash = await GetFileHashAsync(stagingPath);
+            var detectedAt = DateTimeOffset.UtcNow;
+            if (string.Equals(imageHash, _lastImageHash, StringComparison.Ordinal) &&
+                detectedAt - _lastImageAt < TimeSpan.FromSeconds(2))
+            {
+                _lastClipboardSequence = sequence;
+                return;
+            }
+
             _lastClipboardSequence = sequence;
+            _lastImageHash = imageHash;
+            _lastImageAt = detectedAt;
             var handler = ScreenshotDetected;
             if (handler is not null)
             {
@@ -77,6 +96,14 @@ public sealed class ClipboardScreenshotDetector(IScreenshotStorage storage) : IS
             }
             _captureGate.Release();
         }
+    }
+
+    private static async Task<string> GetFileHashAsync(string path)
+    {
+        await using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            64 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var hash = await SHA256.HashDataAsync(file);
+        return Convert.ToHexString(hash);
     }
 
     private static async Task WriteStreamAsync(IRandomAccessStream stream, string destinationPath)

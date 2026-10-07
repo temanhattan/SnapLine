@@ -55,6 +55,25 @@ public sealed class ClotheslineService(
         await completion.Task.WaitAsync(cancellationToken);
     }
 
+    public async Task RestoreAsync(ScreenshotItem item, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!dispatcherQueue.TryEnqueue(() =>
+            {
+                if (!Items.Contains(item))
+                {
+                    item.CurrentState = ScreenshotState.Active;
+                    Items.Add(item);
+                    ItemsChanged?.Invoke(this, EventArgs.Empty);
+                }
+                completion.SetResult();
+            }))
+            throw new InvalidOperationException("The UI dispatcher is no longer available.");
+
+        await completion.Task.WaitAsync(cancellationToken);
+    }
+
     private async Task OnScreenshotDetectedAsync(object sender, ScreenshotDetectedEventArgs args)
     {
         var item = await storage.StoreAsync(args.FilePath);

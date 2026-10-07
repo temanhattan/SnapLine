@@ -7,7 +7,7 @@ namespace SnapLine.Services;
 
 /// <summary>
 /// Keeps originals and UI-sized JPEG thumbnails in a per-run directory under LocalAppData.
-/// A new run clears prior run directories, including leftovers from a crash.
+/// Startup removes abandoned sessions while leaving active sessions owned by other instances alone.
 /// </summary>
 public sealed class TemporaryScreenshotStorage : IScreenshotStorage
 {
@@ -17,9 +17,11 @@ public sealed class TemporaryScreenshotStorage : IScreenshotStorage
     private readonly string _sessionDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "SnapLine", "Temporary", Guid.NewGuid().ToString("N"));
+    private FileStream? _sessionLease;
     private bool _initialized;
 
-    public string TemporaryRootPath => Path.GetDirectoryName(_sessionDirectory)!;
+    public string TemporaryRootPath => _sessionDirectory;
+    private string StorageRootPath => Path.GetDirectoryName(_sessionDirectory)!;
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -28,23 +30,52 @@ public sealed class TemporaryScreenshotStorage : IScreenshotStorage
         {
             if (_initialized) return;
 
-            // Every item is temporary until explicitly saved. Anything left from an earlier
-            // process is therefore safe to remove, including files left by a crash.
-            if (Directory.Exists(TemporaryRootPath))
+            Directory.CreateDirectory(StorageRootPath);
+            using var cleanupMutex = new Mutex(initiallyOwned: false, "Local\\SnapLine.TemporaryStorageCleanup");
+            try { cleanupMutex.WaitOne(); }
+            catch (AbandonedMutexException) { }
+
+            try
             {
-                foreach (var entry in Directory.EnumerateFileSystemEntries(TemporaryRootPath))
+                foreach (var entry in Directory.EnumerateFileSystemEntries(StorageRootPath))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (Directory.Exists(entry) && !IsAbandonedSession(entry))
+                        continue;
                     TryDeleteEntry(entry);
                 }
-            }
 
-            Directory.CreateDirectory(_sessionDirectory);
-            _initialized = true;
+                Directory.CreateDirectory(_sessionDirectory);
+                _sessionLease = new FileStream(Path.Combine(_sessionDirectory, ".session.lock"), FileMode.OpenOrCreate,
+                    FileAccess.ReadWrite, FileShare.None);
+                _initialized = true;
+            }
+            finally
+            {
+                cleanupMutex.ReleaseMutex();
+            }
         }
         finally
         {
             _gate.Release();
+        }
+    }
+
+    private static bool IsAbandonedSession(string directory)
+    {
+        try
+        {
+            using var lease = new FileStream(Path.Combine(directory, ".session.lock"), FileMode.OpenOrCreate,
+                FileAccess.ReadWrite, FileShare.None);
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
         }
     }
 
@@ -84,13 +115,105 @@ public sealed class TemporaryScreenshotStorage : IScreenshotStorage
         var fullDestinationPath = Path.GetFullPath(destinationPath);
         var destinationDirectory = Path.GetDirectoryName(fullDestinationPath)
             ?? throw new ArgumentException("A destination directory is required.", nameof(destinationPath));
-        Directory.CreateDirectory(destinationDirectory);
         if (string.Equals(Path.GetFullPath(item.FilePath), fullDestinationPath, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("The save destination must be outside temporary storage.");
-        await CopyFileAsync(item.FilePath, fullDestinationPath, cancellationToken, overwrite: true);
-        await DeleteAsync(item, cancellationToken);
+        if (IsWithinDirectory(fullDestinationPath, StorageRootPath))
+            throw new InvalidOperationException("Choose a destination outside SnapLine temporary storage.");
+
+        Directory.CreateDirectory(destinationDirectory);
+        var stagingPath = Path.Combine(destinationDirectory, $".snapline-{Guid.NewGuid():N}.tmp");
+        var expectedLength = new FileInfo(item.FilePath).Length;
+        try
+        {
+            await CopyFileAsync(item.FilePath, stagingPath, cancellationToken);
+            if (!File.Exists(stagingPath) || new FileInfo(stagingPath).Length != expectedLength)
+                throw new IOException("The saved image did not pass verification. The screenshot is still available in SnapLine.");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            File.Move(stagingPath, fullDestinationPath, overwrite: true);
+            if (!File.Exists(fullDestinationPath) || new FileInfo(fullDestinationPath).Length != expectedLength)
+                throw new IOException("The saved image could not be confirmed. The screenshot is still available in SnapLine.");
+        }
+        catch
+        {
+            TryDeleteEntry(stagingPath);
+            throw;
+        }
+
         item.CurrentState = ScreenshotState.Saved;
+        try
+        {
+            // The permanent copy is verified; temporary cleanup must not turn a
+            // successful save into a failed UI action. Any leftover is session-cleaned.
+            await DeleteAsync(item, CancellationToken.None);
+            item.CurrentState = ScreenshotState.Saved;
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
         return fullDestinationPath;
+    }
+
+    public async Task ReplaceImageAsync(ScreenshotItem item, byte[] pixels, uint width, uint height, CancellationToken cancellationToken = default)
+    {
+        EnsureOwnedItem(item);
+        if (width == 0 || height == 0 || pixels.LongLength != (long)width * height * 4)
+            throw new ArgumentException("The edited image pixel data is invalid.", nameof(pixels));
+
+        await _gate.WaitAsync(cancellationToken);
+        var directory = Path.GetDirectoryName(item.FilePath)!;
+        var extension = Path.GetExtension(item.FilePath);
+        var stagedOriginal = Path.Combine(directory, $"edited-{Guid.NewGuid():N}{extension}");
+        var stagedThumbnail = Path.Combine(directory, $"thumbnail-{Guid.NewGuid():N}.jpg");
+        var backupOriginal = Path.Combine(directory, $"original-backup-{Guid.NewGuid():N}{extension}");
+        var oldThumbnail = item.ThumbnailPath;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var stream = new FileStream(stagedOriginal, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+            using (var randomAccess = stream.AsRandomAccessStream())
+            {
+                var encoderId = extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+                    ? BitmapEncoder.JpegEncoderId
+                    : BitmapEncoder.PngEncoderId;
+                var encoder = await BitmapEncoder.CreateAsync(encoderId, randomAccess);
+                encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, width, height, 96, 96, pixels);
+                await encoder.FlushAsync();
+            }
+
+            await CreateThumbnailAsync(stagedOriginal, stagedThumbnail, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            File.Move(item.FilePath, backupOriginal);
+            File.Move(stagedOriginal, item.FilePath);
+            var newThumbnail = Path.Combine(directory, $"thumbnail-{Guid.NewGuid():N}.jpg");
+            File.Move(stagedThumbnail, newThumbnail);
+            item.UpdateThumbnailPath(newThumbnail);
+            item.CurrentState = ScreenshotState.Active;
+            TryDeleteEntry(backupOriginal);
+            TryDeleteEntry(oldThumbnail);
+        }
+        catch
+        {
+            if (File.Exists(backupOriginal))
+            {
+                TryDeleteEntry(item.FilePath);
+                File.Move(backupOriginal, item.FilePath);
+            }
+            TryDeleteEntry(stagedOriginal);
+            TryDeleteEntry(stagedThumbnail);
+            throw;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private static bool IsWithinDirectory(string path, string directory)
+    {
+        var root = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        return Path.GetFullPath(path).StartsWith(root, StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task DeleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default)

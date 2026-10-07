@@ -4,13 +4,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="SnapLine">
     <Grid x:Name="ClotheslineRoot" Background="Transparent" Opacity="1">
+        <TextBlock x:Name="EmptyHint"
+                   Text="Waiting for a screenshot · press Win + Shift + S"
+                   FontSize="14"
+                   Foreground="#E8E0D2"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="0,68,0,0"
+                   Visibility="Collapsed" />
         <Path Data="M 0,0 Q 1,26 2,0" Margin="24,19,24,0" Height="28" VerticalAlignment="Top" Stretch="Fill" Stroke="#A99B83" StrokeThickness="2" IsHitTestVisible="False" />
         <ScrollViewer Margin="12,22,12,0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
         <ItemsControl ItemsSource="{x:Bind Clothesline.Items}">
             <ItemsControl.ItemContainerTransitions>
                 <TransitionCollection>
+                    <EntranceThemeTransition FromVerticalOffset="-14" />
                     <AddDeleteThemeTransition />
-                    <ReorderThemeTransition />
+                    <RepositionThemeTransition />
                 </TransitionCollection>
             </ItemsControl.ItemContainerTransitions>
             <ItemsControl.ItemsPanel>
@@ -21,12 +30,16 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Grid Width="144" Height="176"
+                          RenderTransformOrigin="0.5,0.12"
                           CanDrag="True"
                           DragStarting="OnScreenshotDragStarting"
                           DropCompleted="OnScreenshotDropCompleted"
                           Tapped="OnScreenshotTapped"
                           ContextRequested="OnScreenshotContextRequested"
                           ToolTipService.ToolTip="Click to open · drag to share">
+                        <Grid.RenderTransform>
+                            <CompositeTransform x:Name="ItemTransform" />
+                        </Grid.RenderTransform>
                         <Line X1="72" Y1="0" X2="72" Y2="20" Stroke="#A99B83" StrokeThickness="2" />
                         <Border Margin="7,18,7,12" Padding="4" CornerRadius="9" Background="#F4F0E8" BorderBrush="#D4C7B2" BorderThickness="1">
                             <Grid>
@@ -41,5 +54,15 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
         </ScrollViewer>
+        <Border x:Name="UndoToast" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                Margin="0,0,0,12" Padding="14,8" CornerRadius="18"
+                Background="#F22B2926" BorderBrush="#55FFFFFF" BorderThickness="1">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock x:Name="UndoMessage" Text="Screenshot removed" Foreground="White"
+                           VerticalAlignment="Center" FontSize="13" />
+                <Button Content="Undo" Click="OnUndoClicked" Padding="12,4" MinHeight="30"
+                        Background="#FFF4F0E8" Foreground="#FF302D28" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

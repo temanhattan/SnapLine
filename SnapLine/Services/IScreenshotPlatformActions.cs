@@ -11,6 +11,7 @@ public interface IScreenshotShell
 public interface IScreenshotClipboard
 {
     Task CopyImageAsync(string filePath, CancellationToken cancellationToken = default);
+    Task CopyFileAsync(string filePath, CancellationToken cancellationToken = default);
 }
 
 public interface IScreenshotSavePicker

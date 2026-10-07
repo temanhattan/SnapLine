@@ -12,4 +12,5 @@ public interface IClotheslineService
     Task StopAsync(CancellationToken cancellationToken = default);
     Task ConsumeAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
     Task RemoveFromLineAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
+    Task RestoreAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
 }

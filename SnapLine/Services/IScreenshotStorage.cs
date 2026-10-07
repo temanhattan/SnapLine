@@ -9,5 +9,6 @@ public interface IScreenshotStorage
     Task InitializeAsync(CancellationToken cancellationToken = default);
     Task<ScreenshotItem> StoreAsync(string sourcePath, CancellationToken cancellationToken = default);
     Task<string> SaveAsync(ScreenshotItem item, string destinationPath, CancellationToken cancellationToken = default);
+    Task ReplaceImageAsync(ScreenshotItem item, byte[] pixels, uint width, uint height, CancellationToken cancellationToken = default);
     Task DeleteAsync(ScreenshotItem item, CancellationToken cancellationToken = default);
 }
